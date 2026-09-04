@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Kokiku — Cooking Craft Simulator</title>
+<style>
+  :root{
+    --bg-top:#ffffff; --bg-bottom:#f3f4f7;
+    --ink:#2b2b33; --muted:#9a9aa5; --gold:#d4a017; --card:#ffffff;
+    --tier0:#f97316; --tier1:#0ea5e9; --tier2:#16a34a; --tier3:#7e22ce;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; height:100%; overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:linear-gradient(180deg,var(--bg-top) 0%, var(--bg-bottom) 100%);
+    color:var(--ink); -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------------- NAVBAR ---------------- */
+  #navbar{
+    position:relative; z-index:60; display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(0,0,0,0.06); gap:12px; flex-wrap:wrap;
+  }
+  #navTitle{ display:flex; flex-direction:column; line-height:1.1; }
+  #navTitle .name{ font-size:18px; font-weight:800; letter-spacing:-0.3px; }
+  #navTitle .sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+  #moneyBox{
+    display:flex; align-items:center; gap:6px; background:#fffdf5; border:1px solid #f0e0b0;
+    padding:8px 16px; border-radius:999px; box-shadow:0 2px 10px rgba(212,160,23,0.15);
+  }
+  #moneyBox .num{ font-size:18px; font-weight:800; color:var(--gold); font-variant-numeric:tabular-nums; }
+  #navControls{ display:flex; gap:8px; }
+  .btn{
+    border:none; background:#fff; border:1px solid rgba(0,0,0,0.08); padding:8px 14px; border-radius:10px;
+    font-size:12.5px; font-weight:700; color:var(--ink); cursor:pointer; transition:all .15s ease;
+  }
+  .btn:hover{ background:#f7f7f9; transform:translateY(-1px); }
+  .btn:active{ transform:translateY(0) scale(0.97); }
+  .btn.danger{ color:#b91c1c; }
+  .btn:disabled, .btn.disabled{ opacity:0.4; cursor:not-allowed; transform:none !important; }
+  .shake{ animation:shake .35s ease; }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+
+  /* ---------------- HOTBAR ---------------- */
+  #hotbar{
+    display:flex; gap:8px; padding:10px 16px; overflow-x:auto;
+    background:rgba(255,255,255,0.55); border-bottom:1px solid rgba(0,0,0,0.05);
+  }
+  .hot-item{
+    flex:0 0 auto; width:78px; height:74px; border-radius:14px; background:#fff;
+    border:2px solid #e5e5ea; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer; user-select:none; position:relative; transition:all .12s ease;
+  }
+  .hot-item .ico{ font-size:22px; line-height:1; }
+  .hot-item .lbl{ font-size:10px; font-weight:700; margin-top:2px; color:var(--ink); }
+  .hot-item .stock{
+    position:absolute; bottom:3px; right:5px; font-size:10px; font-weight:800; color:var(--muted);
+  }
+  .hot-item.selected{ border-color:var(--gold); background:#fffdf3; box-shadow:0 0 0 3px rgba(212,160,23,0.18); }
+  .hot-item.empty{ opacity:0.38; cursor:not-allowed; }
+  .hot-item:hover:not(.empty){ transform:translateY(-2px); }
+
+  /* ---------------- MAIN AREA ---------------- */
+  #mainArea{ position:absolute; top:0; left:0; right:0; bottom:0; display:flex; }
+  #navWrap{ display:flex; flex-direction:column; }
+
+  #cookPanel{
+    width:38%; min-width:290px; padding:18px; display:flex; flex-direction:column; gap:14px;
+    border-right:1px solid rgba(0,0,0,0.06);
+  }
+  #servePanel{
+    flex:1; padding:18px; display:flex; flex-direction:column; gap:12px; min-width:0;
+  }
+  .panel-title{ font-size:14px; font-weight:800; display:flex; align-items:center; gap:6px; }
+  .panel-sub{ font-size:11px; color:var(--muted); }
+
+  #cookGrid{
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr);
+    gap:10px; background:#fff; border:1px solid rgba(0,0,0,0.06); border-radius:16px; padding:14px;
+    box-shadow:0 3px 12px rgba(0,0,0,0.05);
+  }
+  .cook-slot{
+    aspect-ratio:1/1; border-radius:12px; border:2px dashed #e2e2e8; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#ccc; cursor:default;
+    transition:all .15s ease;
+  }
+  .cook-slot.filled{ border-style:solid; cursor:pointer; }
+  .cook-slot .ico{ font-size:20px; }
+
+  #recipePreview{
+    text-align:center; font-size:12.5px; font-weight:700; min-height:18px; color:var(--muted);
+  }
+  #recipePreview.ok{ color:#16a34a; }
+  #recipePreview.bad{ color:#b91c1c; }
+
+  #cookBtnWrap{ position:relative; }
+  #cookBtn{
+    width:100%; padding:12px; border-radius:12px; border:none; background:var(--ink); color:#fff;
+    font-weight:800; font-size:13.5px; cursor:pointer; position:relative; overflow:hidden;
+  }
+  #cookBtn:disabled{ background:#d8d8dd; cursor:not-allowed; }
+  #cookProgress{
+    position:absolute; left:0; top:0; bottom:0; width:0%; background:rgba(255,255,255,0.25);
+  }
+
+  #serveGrid{
+    flex:1; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+    gap:10px; align-content:start; padding-right:4px;
+  }
+  .dish-card{
+    background:#fff; border-radius:14px; padding:10px 8px; text-align:center; cursor:pointer;
+    border:2px solid var(--tier0); box-shadow:0 2px 8px rgba(0,0,0,0.05); position:relative;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .dish-card:hover{ transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,0.10); }
+  .dish-card .plate-ico{ font-size:24px; }
+  .dish-card .dish-name{
+    font-size:11px; font-weight:800; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .dish-card .dish-rate{ font-size:11px; font-weight:800; margin-top:3px; transition:color .25s ease; }
+  .dish-card .dish-rate.flash{ color:var(--gold) !important; }
+
+  .dish-card[data-tier="0"]{ border-color:var(--tier0); }
+  .dish-card[data-tier="1"]{ border-color:var(--tier1); }
+  .dish-card[data-tier="2"]{ border-color:var(--tier2); }
+  .dish-card[data-tier="3"]{ border-color:var(--tier3); }
+  .dish-card[data-tier="0"] .dish-rate{ color:var(--tier0); }
+  .dish-card[data-tier="1"] .dish-rate{ color:var(--tier1); }
+  .dish-card[data-tier="2"] .dish-rate{ color:var(--tier2); }
+  .dish-card[data-tier="3"] .dish-rate{ color:var(--tier3); }
+
+  .dish-card.pop{ animation:popIn .3s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes popIn{ 0%{transform:scale(0); opacity:0;} 65%{transform:scale(1.15); opacity:1;} 100%{transform:scale(1);} }
+
+  #emptyServeHint{ color:var(--muted); font-size:12.5px; text-align:center; padding:30px 10px; grid-column:1/-1; }
+
+  /* ---------------- MODALS ---------------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,20,25,0.35); backdrop-filter:blur(2px);
+    display:none; align-items:center; justify-content:center; z-index:200;
+  }
+  .overlay.open{ display:flex; }
+  .modal{
+    background:#fff; border-radius:20px; padding:20px; width:360px; max-width:90vw;
+    max-height:80vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.25);
+  }
+  .modal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .modal-header h2{ font-size:16px; margin:0; font-weight:800; }
+  .modal-close{ background:none; border:none; font-size:18px; cursor:pointer; color:var(--muted); }
+
+  .shop-row{
+    display:flex; align-items:center; gap:10px; padding:9px 6px; border-radius:10px;
+  }
+  .shop-row:hover{ background:#f7f7f9; }
+  .shop-row .ico{ font-size:22px; width:30px; text-align:center; }
+  .shop-row .info{ flex:1; min-width:0; }
+  .shop-row .info .nm{ font-size:13px; font-weight:800; }
+  .shop-row .info .pr{ font-size:11px; color:var(--muted); }
+  .shop-row .qty{ font-size:11px; color:var(--muted); width:44px; text-align:right; }
+
+  #dishModal .modal .tier-badge{
+    display:inline-block; font-size:10px; font-weight:800; padding:3px 10px; border-radius:999px;
+    color:#fff; margin-bottom:8px;
+  }
+  #dishModal .stat-row{ display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:1px dashed #eee; }
+  #dishModal .stat-row span:first-child{ color:var(--muted); }
+  #dishModal .stat-row span:last-child{ font-weight:700; }
+
+  ::-webkit-scrollbar{ width:6px; height:6px; }
+  ::-webkit-scrollbar-thumb{ background:#ddd; border-radius:4px; }
+
+  /* ---------------- DISCOVERY PANEL ---------------- */
+  #dexToggle{
+    position: fixed; right: 18px; bottom: 18px; z-index: 210;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 20px; cursor:pointer;
+  }
+  #dexPanel{
+    position: fixed; right: 18px; bottom: 74px; z-index: 209;
+    width: 270px; max-height: 62vh; overflow-y:auto;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px; padding: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    display:none;
+  }
+  #dexPanel.open{ display:block; }
+  #dexPanel h3{ margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight:700; text-transform:uppercase; letter-spacing: 0.6px; }
+  #dexPanel .dex-tier-label{ font-size: 10px; color:#bbb; font-weight:800; margin: 8px 0 3px; letter-spacing:0.5px; }
+  .dex-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 6px 8px; border-radius: 8px; margin-bottom:3px; font-size: 12.5px; font-weight:600;
+  }
+  .dex-row.locked{ color:#c9c9d0; }
+  .dex-row .lvl-tag{ font-size:10px; color:#aaa; font-weight:700; }
+
+  @media (max-width:760px){
+    #mainArea{ flex-direction:column; }
+    #cookPanel{ width:100%; border-right:none; border-bottom:1px solid rgba(0,0,0,0.06); }
+  }
+</style>
+</head>
+<body>
+
+  <div id="navWrap">
+    <div id="navbar">
+      <div id="navTitle">
+        <div class="name">🍳 Kokiku</div>
+        <div class="sub">Craft bahan jadi hidangan, sajikan, dan panen $ tiap detik</div>
+      </div>
+      <div id="moneyBox">
+        <span>💵</span>
+        <span class="num" id="moneyCount">0</span>
+      </div>
+      <div id="navControls">
+        <button class="btn" id="btnShop">🛒 Toko</button>
+        <button class="btn danger" id="btnReset">Reset</button>
+      </div>
+    </div>
+    <div id="hotbar"></div>
+  </div>
+
+  <div id="mainArea" style="top:112px;">
+    <div id="cookPanel">
+      <div>
+        <div class="panel-title">🔥 Tungku Masak</div>
+        <div class="panel-sub">Klik bahan di hotbar untuk memilih, lalu masak!</div>
+      </div>
+      <div id="cookGrid"></div>
+      <div id="recipePreview">Pilih bahan dulu...</div>
+      <div id="cookBtnWrap">
+        <button id="cookBtn" disabled>Masak!</button>
+        <div id="cookProgress"></div>
+      </div>
+    </div>
+
+    <div id="servePanel">
+      <div>
+        <div class="panel-title">🍽️ Meja Saji <span id="dishCountLbl" style="color:var(--muted); font-weight:600;"></span></div>
+        <div class="panel-sub">Klik hidangan untuk info & hapus</div>
+      </div>
+      <div id="serveGrid"><div id="emptyServeHint">Belum ada hidangan tersaji. Masak sesuatu dulu!</div></div>
+    </div>
+  </div>
+
+  <!-- SHOP MODAL -->
+  <div class="overlay" id="shopOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🛒 Toko Bahan</h2>
+        <button class="modal-close" id="shopClose">✕</button>
+      </div>
+      <div id="shopMoneyBox" style="display:flex; align-items:center; gap:6px; background:#fffdf5; border:1px solid #f0e0b0; padding:8px 14px; border-radius:12px; margin-bottom:12px;">
+        <span>💵</span>
+        <span style="font-weight:800; color:var(--gold); font-size:14px;">Uang kamu: <span id="shopMoneyNum">$0</span></span>
+      </div>
+      <div id="shopList"></div>
+    </div>
+  </div>
+
+  <!-- DISH INFO MODAL -->
+  <div class="overlay" id="dishOverlay">
+    <div class="modal" id="dishModal">
+      <div class="modal-header">
+        <h2 id="dishModalName">Dish</h2>
+        <button class="modal-close" id="dishClose">✕</button>
+      </div>
+      <span class="tier-badge" id="dishModalTier">Tier 0</span>
+      <div class="stat-row"><span>Pendapatan</span><span id="dishModalRate">$0/dtk</span></div>
+      <div class="stat-row"><span>Modal Awal Resep</span><span id="dishModalModal">$0</span></div>
+      <div class="stat-row"><span>Total Dihasilkan</span><span id="dishModalTotal">$0</span></div>
+      <button class="btn danger" id="dishDeleteBtn" style="width:100%; margin-top:14px;">🗑️ Hapus Menu Ini</button>
+    </div>
+  </div>
+
+  <div id="dexToggle" title="Ensiklopedia Hidangan">📖</div>
+  <div id="dexPanel">
+    <h3>Ensiklopedia Hidangan</h3>
+    <div id="dexList"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ INGREDIENT DATA ============ */
+  const INGREDIENTS = {
+    rice:      { label:"Nasi",    basePrice:10,   factor:1,   icon:"🍚", level:0, stock:0 },
+    egg:       { label:"Telur",   basePrice:20,   factor:2,   icon:"🥚", level:0, stock:0 },
+    flour:     { label:"Tepung",  basePrice:40,   factor:4,   icon:"🌾", level:0, stock:0 },
+    milk:      { label:"Susu",    basePrice:80,   factor:8,   icon:"🥛", level:0, stock:0 },
+    vegetable: { label:"Sayur",   basePrice:160,  factor:16,  icon:"🥬", level:0, stock:0 },
+    potato:    { label:"Kentang", basePrice:480,  factor:48,  icon:"🥔", level:0, stock:0 },
+    tomato:    { label:"Tomat",   basePrice:1280, factor:128, icon:"🍅", level:0, stock:0 },
+    water:     { label:"Air",     basePrice:0,    factor:0,   icon:"💧", level:0, stock:0, infinite:true }
+  };
+  const HOTBAR_ORDER = ["rice","egg","flour","milk","vegetable","potato","tomato","water"];
+
+  function priceFor(ing){
+    return ing.basePrice + ing.factor * (ing.level*ing.level);
+  }
+
+  /* ============ RECIPES (canonical sorted-key -> result) ============ */
+  const RECIPES = {
+    // Tier 0 — satu bahan, goreng langsung
+    "rice":      { id:"fried_rice",          label:"Nasi Goreng",           rate:1,   tier:0, modal:10   },
+    "egg":       { id:"fried_egg",           label:"Telur Goreng",          rate:2,   tier:0, modal:20   },
+    "vegetable": { id:"stir_fried_veg",      label:"Tumis Sayur",           rate:16,  tier:0, modal:160  },
+    "potato":    { id:"fried_potato",        label:"Kentang Goreng",        rate:48,  tier:0, modal:480  },
+    "tomato":    { id:"tomato_juice",        label:"Jus Tomat",             rate:128, tier:0, modal:1280 },
+
+    // Tier 1 — bahan + air (rebus)
+    "egg+water":       { id:"boiled_egg",          label:"Telur Rebus",           rate:2,   tier:1, modal:20   },
+    "flour+water":     { id:"wet_dough",           label:"Adonan Basah",          rate:4,   tier:1, modal:40   },
+    "milk+water":      { id:"warm_milk",           label:"Susu Hangat",           rate:8,   tier:1, modal:80   },
+    "potato+water":    { id:"boiled_potato",       label:"Kentang Rebus",         rate:48,  tier:1, modal:480  },
+    "rice+water":      { id:"porridge",            label:"Bubur",                 rate:1,   tier:1, modal:10   },
+    "tomato+water":    { id:"thin_tomato_soup",    label:"Sup Tomat Encer",       rate:128, tier:1, modal:1280 },
+    "vegetable+water": { id:"boiled_veg",          label:"Sayur Rebus",           rate:16,  tier:1, modal:160  },
+
+    // Tier 2 — dua bahan
+    "egg+flour":         { id:"flour_omelette",      label:"Dadar Tepung",          rate:6,   tier:2, modal:60   },
+    "egg+milk":          { id:"milk_omelette",       label:"Omelet Susu",           rate:10,  tier:2, modal:100  },
+    "egg+potato":        { id:"potato_fritter",      label:"Perkedel Kentang",      rate:50,  tier:2, modal:500  },
+    "egg+rice":          { id:"scrambled_rice",      label:"Nasi Orak-Arik",        rate:3,   tier:2, modal:30   },
+    "egg+tomato":        { id:"tomato_egg_stirfry",  label:"Telur Tumis Tomat",     rate:130, tier:2, modal:1300 },
+    "egg+vegetable":     { id:"veg_omelette",        label:"Omelet Sayur",          rate:18,  tier:2, modal:180  },
+    "flour+milk":        { id:"pancake_batter",      label:"Adonan Pancake",        rate:12,  tier:2, modal:120  },
+    "milk+potato":       { id:"mashed_potato",       label:"Mashed Potato",         rate:56,  tier:2, modal:560  },
+    "rice+tomato":       { id:"tomato_rice",         label:"Nasi Tomat",            rate:129, tier:2, modal:1290 },
+    "rice+vegetable":    { id:"veg_rice",            label:"Nasi Sayur",            rate:17,  tier:2, modal:170  },
+    "tomato+vegetable":  { id:"tomato_salad",        label:"Salad Tomat",           rate:144, tier:2, modal:1440 },
+
+    // Tier 3 — tiga bahan
+    "egg+rice+tomato":       { id:"tomato_fried_rice",     label:"Nasi Goreng Tomat",       rate:131, tier:3, modal:1310 },
+    "egg+rice+vegetable":    { id:"special_fried_rice",    label:"Nasi Goreng Spesial",     rate:19,  tier:3, modal:190  },
+    "egg+flour+milk":        { id:"deluxe_pancake",        label:"Pancake Mewah",           rate:14,  tier:3, modal:140  },
+    "egg+milk+potato":       { id:"potato_gratin",         label:"Potato Gratin",           rate:58,  tier:3, modal:580  },
+    "egg+tomato+vegetable":  { id:"veg_tomato_egg_soup",   label:"Sup Sayur Tomat Telur",   rate:146, tier:3, modal:1460 },
+    "egg+flour+rice":        { id:"flour_fried_rice",      label:"Nasi Goreng Tepung",      rate:7,   tier:3, modal:70   }
+  };
+
+  const TIER_ICON = { 0:"🍳", 1:"🍲", 2:"🍽️", 3:"👑" };
+  const TIER_COLOR = { 0:"var(--tier0)", 1:"var(--tier1)", 2:"var(--tier2)", 3:"var(--tier3)" };
+
+  function canonicalKey(arr){ return arr.slice().sort().join("+"); }
+
+  /* ============ AUDIO (varied "tut" per tier) ============ */
+  // Tier 0: satu nada rendah bulat (fried/simple). Tier 1: nada sine hangat sedikit lebih lembut (rebus).
+  // Tier 2: dua nada bareng (triangle) berasa "lebih penuh" (campuran). Tier 3: tiga nada naik (mewah/kompleks).
+  const TIER_SOUND = {
+    0: { type:"sine",     freqs:[392] },
+    1: { type:"sine",     freqs:[294] },
+    2: { type:"triangle", freqs:[440, 554] },
+    3: { type:"triangle", freqs:[523, 659, 784] }
+  };
+
+  let audioCtx = null;
+  function ensureAudio(){
+    if (!audioCtx){
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch(e){ audioCtx = null; }
+    } else if (audioCtx.state === "suspended"){
+      audioCtx.resume();
+    }
+  }
+  document.addEventListener("pointerdown", ensureAudio, { once:false });
+
+  function playDishSound(tier){
+    if (!audioCtx || audioCtx.state !== "running") return;
+    const conf = TIER_SOUND[tier] || TIER_SOUND[0];
+    const t0 = audioCtx.currentTime;
+    conf.freqs.forEach((f, i) => {
+      const start = t0 + i*0.028;
+      const jitter = Math.random()*8 - 4;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = conf.type;
+      osc.frequency.setValueAtTime(f + jitter, start);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.05 / conf.freqs.length, start + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.16);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(start);
+      osc.stop(start + 0.17);
+    });
+  }
+
+  /* ============ STATE ============ */
+  let money = 50;
+  let selected = [];              // array of ingredient keys currently staged
+  let dishes = [];                 // {id, resultId, label, rate, tier, modal, total, dom, tickTimeout, tickInterval}
+  let dishIdCounter = 0;
+  let cooking = false;
+  let activeDishForModal = null;
+  const discovered = new Set();    // resultId of every dish ever cooked
+
+  const SAVE_KEY = "kokikuSave_v1";
+
+  const el = (id) => document.getElementById(id);
+  const moneyCountEl = el("moneyCount");
+  const hotbarEl = el("hotbar");
+  const cookGridEl = el("cookGrid");
+  const recipePreviewEl = el("recipePreview");
+  const cookBtn = el("cookBtn");
+  const cookProgressEl = el("cookProgress");
+  const serveGridEl = el("serveGrid");
+  const dishCountLbl = el("dishCountLbl");
+
+  /* ============ MONEY ============ */
+  function updateMoneyDisplay(){
+    moneyCountEl.textContent = "$" + Math.floor(money).toLocaleString("id-ID");
+    renderHotbar();
+    updateCookAvailability();
+    if (typeof shopOverlay !== "undefined" && shopOverlay.classList.contains("open")){
+      renderShop();
+    }
+  }
+
+  /* ============ HOTBAR ============ */
+  function renderHotbar(){
+    hotbarEl.innerHTML = "";
+    HOTBAR_ORDER.forEach(key => {
+      const ing = INGREDIENTS[key];
+      const div = document.createElement("div");
+      const isSelected = selected.includes(key);
+      const noStock = !ing.infinite && ing.stock <= 0;
+      div.className = "hot-item" + (isSelected ? " selected" : "") + (noStock ? " empty" : "");
+      div.innerHTML = `
+        <div class="ico">${ing.icon}</div>
+        <div class="lbl">${ing.label}</div>
+        <div class="stock">${ing.infinite ? "∞" : ing.stock}</div>
+      `;
+      div.addEventListener("click", () => toggleSelect(key));
+      hotbarEl.appendChild(div);
+    });
+  }
+
+  /* ============ SELECTION / COOK SLOTS ============ */
+  function toggleSelect(key){
+    if (cooking) return;
+    const idx = selected.indexOf(key);
+    if (idx >= 0){
+      selected.splice(idx, 1);
+    } else {
+      const ing = INGREDIENTS[key];
+      if (!ing.infinite && ing.stock <= 0) return;
+      if (selected.length >= 6) return;
+      selected.push(key);
+    }
+    renderCookSlots();
+    updateRecipePreview();
+    renderHotbar();
+  }
+
+  function renderCookSlots(){
+    cookGridEl.innerHTML = "";
+    for (let i=0; i<6; i++){
+      const div = document.createElement("div");
+      const key = selected[i];
+      if (key){
+        const ing = INGREDIENTS[key];
+        div.className = "cook-slot filled";
+        div.style.borderColor = "#ddd";
+        div.innerHTML = `<div class="ico">${ing.icon}</div><div>${ing.label}</div>`;
+        div.addEventListener("click", () => toggleSelect(key));
+      } else {
+        div.className = "cook-slot";
+        div.textContent = "+";
+      }
+      cookGridEl.appendChild(div);
+    }
+  }
+
+  function currentRecipe(){
+    if (selected.length === 0) return null;
+    return RECIPES[canonicalKey(selected)] || null;
+  }
+
+  function hasEnoughStock(){
+    return selected.every(key => {
+      const ing = INGREDIENTS[key];
+      return ing.infinite || ing.stock > 0;
+    });
+  }
+
+  function updateRecipePreview(){
+    const recipe = currentRecipe();
+    if (selected.length === 0){
+      recipePreviewEl.textContent = "Pilih bahan dulu...";
+      recipePreviewEl.className = "";
+    } else if (recipe){
+      recipePreviewEl.textContent = `→ ${recipe.label} ($${recipe.rate}/dtk)`;
+      recipePreviewEl.className = "ok";
+    } else {
+      recipePreviewEl.textContent = "Kombinasi tidak dikenal 😕";
+      recipePreviewEl.className = "bad";
+    }
+    updateCookAvailability();
+  }
+
+  function updateCookAvailability(){
+    const recipe = currentRecipe();
+    cookBtn.disabled = cooking || !recipe || !hasEnoughStock();
+  }
+
+  /* ============ COOKING PROCESS ============ */
+  cookBtn.addEventListener("click", () => {
+    const recipe = currentRecipe();
+    if (!recipe || !hasEnoughStock() || cooking) return;
+
+    // consume stock
+    selected.forEach(key => {
+      const ing = INGREDIENTS[key];
+      if (!ing.infinite) ing.stock -= 1;
+    });
+    const count = selected.length;
+    selected = [];
+    renderCookSlots();
+    updateRecipePreview();
+    renderHotbar();
+
+    cooking = true;
+    cookBtn.disabled = true;
+    const duration = 1200 + count*800;
+    cookProgressEl.style.transition = "none";
+    cookProgressEl.style.width = "0%";
+    void cookProgressEl.offsetWidth;
+    cookProgressEl.style.transition = `width ${duration}ms linear`;
+    cookProgressEl.style.width = "100%";
+
+    setTimeout(() => {
+      addDish(recipe);
+      cooking = false;
+      cookProgressEl.style.transition = "none";
+      cookProgressEl.style.width = "0%";
+      updateRecipePreview();
+    }, duration);
+  });
+
+  /* ============ DISH / SERVE GRID ============ */
+  function addDish(recipe, presetTotal){
+    const emptyHint = document.getElementById("emptyServeHint");
+    if (emptyHint) emptyHint.remove();
+
+    const id = "d" + (dishIdCounter++);
+    const dom = document.createElement("div");
+    dom.className = "dish-card pop";
+    dom.dataset.tier = recipe.tier;
+    dom.title = recipe.label;
+    dom.innerHTML = `
+      <div class="plate-ico">${TIER_ICON[recipe.tier]}</div>
+      <div class="dish-name">${recipe.label}</div>
+      <div class="dish-rate">$${recipe.rate}/dtk</div>
+    `;
+    serveGridEl.appendChild(dom);
+
+    const dish = {
+      id, resultId: recipe.id, label: recipe.label, rate: recipe.rate,
+      tier: recipe.tier, modal: recipe.modal, total: presetTotal || 0,
+      dom, tickTimeout:null, tickInterval:null
+    };
+    dishes.push(dish);
+    dom.addEventListener("click", () => openDishModal(dish));
+    scheduleDishTick(dish);
+    dishCountLbl.textContent = "(" + dishes.length + ")";
+
+    if (!discovered.has(recipe.id)){
+      discovered.add(recipe.id);
+      renderDex();
+    }
+    return dish;
+  }
+
+  function scheduleDishTick(dish, initialDelay){
+    const delay = (initialDelay !== undefined) ? initialDelay : Math.random()*1000;
+    dish.tickTimeout = setTimeout(() => {
+      tickDish(dish);
+      dish.tickInterval = setInterval(() => tickDish(dish), 1000);
+    }, delay);
+  }
+
+  function tickDish(dish){
+    if (!dishes.includes(dish)) return;
+    money += dish.rate;
+    dish.total += dish.rate;
+    const rateEl = dish.dom.querySelector(".dish-rate");
+    rateEl.classList.remove("flash");
+    void rateEl.offsetWidth;
+    rateEl.classList.add("flash");
+    playDishSound(dish.tier);
+    updateMoneyDisplay();
+  }
+
+  function removeDish(dish){
+    if (dish.tickTimeout) clearTimeout(dish.tickTimeout);
+    if (dish.tickInterval) clearInterval(dish.tickInterval);
+    dish.dom.remove();
+    dishes = dishes.filter(d => d.id !== dish.id);
+    dishCountLbl.textContent = dishes.length ? "(" + dishes.length + ")" : "";
+    if (dishes.length === 0){
+      serveGridEl.innerHTML = '<div id="emptyServeHint">Belum ada hidangan tersaji. Masak sesuatu dulu!</div>';
+    }
+  }
+
+  /* ============ DISH INFO MODAL ============ */
+  const dishOverlay = el("dishOverlay");
+  function openDishModal(dish){
+    activeDishForModal = dish;
+    el("dishModalName").textContent = dish.label;
+    const tierBadge = el("dishModalTier");
+    tierBadge.textContent = "Tier " + dish.tier;
+    tierBadge.style.background = TIER_COLOR[dish.tier];
+    el("dishModalRate").textContent = "$" + dish.rate + "/dtk";
+    el("dishModalModal").textContent = "$" + dish.modal.toLocaleString("id-ID");
+    el("dishModalTotal").textContent = "$" + Math.floor(dish.total).toLocaleString("id-ID");
+    dishOverlay.classList.add("open");
+  }
+  el("dishClose").addEventListener("click", () => dishOverlay.classList.remove("open"));
+  dishOverlay.addEventListener("click", (e) => { if (e.target === dishOverlay) dishOverlay.classList.remove("open"); });
+  el("dishDeleteBtn").addEventListener("click", () => {
+    if (activeDishForModal){
+      removeDish(activeDishForModal);
+      activeDishForModal = null;
+    }
+    dishOverlay.classList.remove("open");
+  });
+
+  /* ============ SHOP MODAL ============ */
+  const shopOverlay = el("shopOverlay");
+  const shopList = el("shopList");
+
+  function renderShop(){
+    el("shopMoneyNum").textContent = "$" + Math.floor(money).toLocaleString("id-ID");
+    shopList.innerHTML = "";
+    HOTBAR_ORDER.forEach(key => {
+      const ing = INGREDIENTS[key];
+      const row = document.createElement("div");
+      row.className = "shop-row";
+      if (ing.infinite){
+        row.innerHTML = `
+          <div class="ico">${ing.icon}</div>
+          <div class="info"><div class="nm">${ing.label}</div><div class="pr">Gratis · tak terbatas</div></div>
+          <div class="qty">∞</div>
+        `;
+      } else {
+        const price = priceFor(ing);
+        row.innerHTML = `
+          <div class="ico">${ing.icon}</div>
+          <div class="info"><div class="nm">${ing.label}</div><div class="pr">$${price.toLocaleString("id-ID")}</div></div>
+          <div class="qty">x${ing.stock}</div>
+          <button class="btn" style="margin-left:6px;" ${money < price ? "disabled" : ""}>Beli</button>
+        `;
+        row.querySelector("button").addEventListener("click", () => buyIngredient(key));
+      }
+      shopList.appendChild(row);
+    });
+  }
+
+  function buyIngredient(key){
+    const ing = INGREDIENTS[key];
+    const price = priceFor(ing);
+    if (money < price) return;
+    money -= price;
+    ing.stock += 1;
+    ing.level += 1;
+    updateMoneyDisplay();
+    renderShop();
+  }
+
+  el("btnShop").addEventListener("click", () => { renderShop(); shopOverlay.classList.add("open"); });
+  el("shopClose").addEventListener("click", () => shopOverlay.classList.remove("open"));
+  shopOverlay.addEventListener("click", (e) => { if (e.target === shopOverlay) shopOverlay.classList.remove("open"); });
+
+  /* ============ DEX PANEL (ensiklopedia hidangan) ============ */
+  const dexPanel = el("dexPanel");
+  const dexList = el("dexList");
+
+  // urutkan semua resep berdasarkan tier untuk ditampilkan rapi
+  const ALL_RECIPES_SORTED = Object.values(RECIPES).sort((a, b) => a.tier - b.tier);
+
+  function renderDex(){
+    dexList.innerHTML = "";
+    let lastTier = -1;
+    ALL_RECIPES_SORTED.forEach(recipe => {
+      if (recipe.tier !== lastTier){
+        lastTier = recipe.tier;
+        const lbl = document.createElement("div");
+        lbl.className = "dex-tier-label";
+        lbl.textContent = "TIER " + lastTier;
+        dexList.appendChild(lbl);
+      }
+      const known = discovered.has(recipe.id);
+      const row = document.createElement("div");
+      row.className = "dex-row" + (known ? "" : " locked");
+      row.innerHTML = known
+        ? `<span style="color:${getComputedTierColor(recipe.tier)}">${recipe.label}</span><span class="lvl-tag">$${recipe.rate}/dtk</span>`
+        : `<span>???</span><span class="lvl-tag"></span>`;
+      dexList.appendChild(row);
+    });
+  }
+
+  function getComputedTierColor(tier){
+    const map = { 0:"#f97316", 1:"#0ea5e9", 2:"#16a34a", 3:"#7e22ce" };
+    return map[tier] || "#333";
+  }
+
+  el("dexToggle").addEventListener("click", () => {
+    dexPanel.classList.toggle("open");
+  });
+
+  /* ============ RESET ============ */
+  el("btnReset").addEventListener("click", () => {
+    if (!confirm("Reset seluruh progres, uang, dan hidangan?")) return;
+    try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+    dishes.slice().forEach(removeDish);
+    HOTBAR_ORDER.forEach(key => { INGREDIENTS[key].stock = 0; INGREDIENTS[key].level = 0; });
+    selected = [];
+    money = 50;
+    discovered.clear();
+    renderDex();
+    renderCookSlots();
+    updateRecipePreview();
+    updateMoneyDisplay();
+  });
+
+  /* ============ SAVE / LOAD ============ */
+  function saveGame(){
+    try{
+      const data = {
+        money,
+        ingredients: Object.fromEntries(HOTBAR_ORDER.map(k => [k, { level: INGREDIENTS[k].level, stock: INGREDIENTS[k].stock }])),
+        dishes: dishes.map(d => ({ resultId: d.resultId, total: d.total })),
+        discovered: [...discovered]
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    }catch(e){ /* ignore */ }
+  }
+
+  function findRecipeByResultId(resultId){
+    for (const key in RECIPES){ if (RECIPES[key].id === resultId) return RECIPES[key]; }
+    return null;
+  }
+
+  function loadGame(){
+    let raw;
+    try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){ raw = null; }
+    if (!raw){ updateMoneyDisplay(); return; }
+    try{
+      const data = JSON.parse(raw);
+      money = (typeof data.money === "number") ? data.money : 50;
+      if (data.ingredients){
+        HOTBAR_ORDER.forEach(k => {
+          if (data.ingredients[k]){
+            INGREDIENTS[k].level = data.ingredients[k].level || 0;
+            INGREDIENTS[k].stock = data.ingredients[k].stock || 0;
+          }
+        });
+      }
+      (data.dishes || []).forEach(d => {
+        const recipe = findRecipeByResultId(d.resultId);
+        if (recipe) addDish(recipe, d.total || 0);
+      });
+      (data.discovered || []).forEach(id => discovered.add(id));
+    }catch(e){ /* ignore corrupt save */ }
+    updateMoneyDisplay();
+    renderDex();
+  }
+
+  window.addEventListener("beforeunload", saveGame);
+  setInterval(saveGame, 4000);
+
+  /* ============ INIT ============ */
+  renderCookSlots();
+  updateRecipePreview();
+  renderDex();
+  loadGame();
+
+  // fit main area below navbar+hotbar height
+  function fitLayout(){
+    const wrap = document.getElementById("navWrap");
+    document.getElementById("mainArea").style.top = wrap.offsetHeight + "px";
+  }
+  window.addEventListener("resize", fitLayout);
+  fitLayout();
+})();
+</script>
+</body>
+</html>

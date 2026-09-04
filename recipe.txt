@@ -1,0 +1,345 @@
+KOKIKU GAME CRAFTING RECIPE!
+
+script ai:
+Minor Tweaks!: (versi 0.2.1)
+
+Jangan buat hotbar full kiri, tapi buat rata tengah
+
+Ubah unlocked bahan dasar seperti berikut:
+
+Kedelai -> Level 5 (beri notifikasi juga)
+
+Bahan Dasar:
+
+Air: $0
+Nasi: $10
+Telur: $20
+Tepung: $40
+
+Locked: (harus level 20 untuk unlock)
+Kedelai: $100
+Susu: $200
+
+Locked: (harus level 40 untuk unlock)
+Sayur: $400
+Kentang: $1000
+
+
+Possible Kombinasi:
+1. Kombinasi 1 Bahan (Masak Langsung)
+Nasi: Nasi Goreng Polos ($1/s)
+Telur: Telur Goreng ($2/s)
+Kedelai: Tempe ($10/s)
+Kentang: Kentang Goreng ($100/s)
+
+2. Kombinasi 2 Bahan
+Grup Nasi
+Nasi + Telur: Nasi Orak-Arik ($3/s)
+Nasi + Air: Bubur Polos ($1/s)
+Nasi + Kedelai: Nasi Tempe ($11/s)
+Nasi + Sayur: Nasi Sayur ($41/s)
+
+Grup Tepung
+Tepung + Telur: Dadar Tepung ($6/s)
+Tepung + Air: Adonan Dasar ($4/s)
+Tepung + Kedelai: Tempe Mendoan ($14/s)
+Tepung + Susu: Adonan Pancake ($24/s)
+Tepung + Sayur: Bakwan Sayur ($44/s)
+Tepung + Kentang: Stick Kentang ($104/s)
+
+Grup Telur
+Telur + Air: Telur Rebus ($2/s)
+Telur + Kedelai: Orak-Arik Tempe Telur ($12/s)
+Telur + Susu: Omelet Susu ($22/s)
+Telur + Sayur: Omelet Sayur ($42/s)
+Telur + Kentang: Perkedel Kentang ($102/s)
+
+Grup Air
+Air + Kedelai: Tahu ($10/s)
+Air + Susu: Susu Hangat ($20/s)
+Air + Sayur: Sayur Rebus ($40/s)
+Air + Kentang: Kentang Rebus ($100/s)
+
+Grup Susu
+Susu + Kentang: Mashed Potato ($120/s)
+
+3. Kombinasi 3 Bahan
+Campuran Berbasis Nasi
+Nasi + Tepung + Telur: Nasi Goreng Tepung ($7/s)
+Nasi + Telur + Air: Bubur Telur ($3/s)
+Nasi + Telur + Kedelai: Nasi Orak-Arik Tempe ($13/s)
+Nasi + Telur + Sayur: Nasi Goreng Sayur ($43/s)
+Nasi + Telur + Kentang: Nasi Perkedel ($103/s)
+Nasi + Air + Kedelai: Bubur Tempe ($11/s)
+Nasi + Air + Sayur: Bubur Sayur ($41/s)
+Nasi + Air + Kentang: Bubur Kentang ($101/s)
+Nasi + Kedelai + Sayur: Nasi Tumis Tempe Sayur ($51/s)
+Nasi + Sayur + Kentang: Nasi Sup Kentang ($141/s)
+
+Campuran Berbasis Tepung
+Tepung + Telur + Air: Adonan Dadar Crepes ($6/s)
+Tepung + Telur + Kedelai: Tempe Mendoan Telur ($16/s)
+Tepung + Telur + Susu: Kue Bolu ($26/s)
+Tepung + Telur + Sayur: Bakwan Sayur Spesial ($46/s)
+Tepung + Telur + Kentang: Perkedel Tepung ($106/s)
+Tepung + Air + Susu: Adonan Kue Basah ($24/s)
+Tepung + Air + Sayur: Adonan Bakwan ($44/s)
+Tepung + Air + Kentang: Adonan Stick Kentang ($104/s)
+Tepung + Kedelai + Sayur: Tempe Bakwan Sayur ($54/s)
+Tepung + Susu + Kentang: Kroket Kentang ($124/s)
+Tepung + Sayur + Kentang: Bakwan Kentang Sayur ($144/s)
+
+Campuran Berbasis Telur
+Telur + Air + Kedelai: Telur Rebus Tempe ($12/s)
+Telur + Air + Susu: Pudding Telur ($22/s)
+Telur + Air + Sayur: Sup Telur Sayur ($42/s)
+Telur + Air + Kentang: Sup Telur Kentang ($102/s)
+Telur + Kedelai + Sayur: Tumis Tempe Telur Sayur ($52/s)
+Telur + Kedelai + Kentang: Perkedel Tempe Kentang ($112/s)
+Telur + Susu + Sayur: Omelet Sayur Susu ($62/s)
+Telur + Susu + Kentang: Omelet Kentang Susu ($122/s)
+Telur + Sayur + Kentang: Perkedel Sayur Kentang ($142/s)
+
+Campuran Berbasis Air
+Air + Kedelai + Sayur: Sup Tempe Sayur ($50/s)
+Air + Kedelai + Kentang: Sup Tempe Kentang ($110/s)
+Air + Susu + Kentang: Sup Kentang Susu ($120/s)
+Air + Sayur + Kentang: Sup Kentang Bening ($140/s)
+
+Kombinasi Bahan Toko
+Kedelai + Sayur + Kentang: Tumis Tempe Kentang Sayur ($150/s)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Semua Kombinasi:
+1. Kombinasi 1 Bahan (Total: 8)
+
+Nasi: Nasi Goreng Polos
+Tepung: X
+Telur: Telur Goreng
+Air: X
+
+Kedelai: Tempe Goreng
+Susu: X
+Sayur: X
+Kentang: Kentang Goreng
+
+2. Kombinasi 2 Bahan (Total: 28)
+Grup Nasi
+Nasi + Tepung: X
+
+Nasi + Telur: Nasi Orak-Arik
+
+Nasi + Air: Bubur Polos
+
+Nasi + Kedelai: Nasi Tempe
+
+Nasi + Susu: X
+
+Nasi + Sayur: Nasi Sayur
+
+Nasi + Kentang: X
+
+Grup Tepung
+Tepung + Telur: Dadar Tepung
+
+Tepung + Air: Adonan Dasar
+
+Tepung + Kedelai: Tempe Mendoan
+
+Tepung + Susu: Adonan Pancake
+
+Tepung + Sayur: Bakwan Sayur
+
+Tepung + Kentang: Stick Kentang
+
+Grup Telur
+Telur + Air: Telur Rebus
+
+Telur + Kedelai: Telur Tempe / Orak-Arik Tempe
+
+Telur + Susu: Omelet Susu
+
+Telur + Sayur: Omelet Sayur
+
+Telur + Kentang: Perkedel Kentang
+
+Grup Air
+Air + Kedelai: Air Tahu / Rebusan Kedelai
+
+Air + Susu: Susu Hangat
+
+Air + Sayur: Sayur Rebus
+
+Air + Kentang: Kentang Rebus
+
+Grup Kedelai
+Kedelai + Susu: X
+
+Kedelai + Sayur: X
+
+Kedelai + Kentang: X
+
+Grup Susu & Sayur
+Susu + Sayur: X
+
+Susu + Kentang: Mashed Potato
+
+Sayur + Kentang: X
+
+3. Kombinasi 3 Bahan (Total: 56)
+Campuran Berbasis Nasi
+Nasi + Tepung + Telur: Nasi Goreng Tepung
+
+Nasi + Tepung + Air: X
+
+Nasi + Tepung + Kedelai: X
+
+Nasi + Tepung + Susu: X
+
+Nasi + Tepung + Sayur: X
+
+Nasi + Tepung + Kentang: X
+
+Nasi + Telur + Air: Bubur Telur
+
+Nasi + Telur + Kedelai: Nasi Orak-Arik Tempe
+
+Nasi + Telur + Susu: X
+
+Nasi + Telur + Sayur: Nasi Goreng Sayur
+
+Nasi + Telur + Kentang: Nasi Perkedel
+
+Nasi + Air + Kedelai: Bubur Tempe
+
+Nasi + Air + Susu: X
+
+Nasi + Air + Sayur: Bubur Sayur
+
+Nasi + Air + Kentang: Bubur Kentang
+
+Nasi + Kedelai + Susu: X
+
+Nasi + Kedelai + Sayur: Nasi Tumis Tempe Sayur
+
+Nasi + Kedelai + Kentang: X
+
+Nasi + Susu + Sayur: X
+
+Nasi + Susu + Kentang: X
+
+Nasi + Sayur + Kentang: Nasi Sup Kentang
+
+Campuran Berbasis Tepung
+Tepung + Telur + Air: Adonan Dadar / Crepes
+
+Tepung + Telur + Kedelai: Tempe Mendoan Telur
+
+Tepung + Telur + Susu: Pancake Mewah
+
+Tepung + Telur + Sayur: Bakwan Sayur Spesial
+
+Tepung + Telur + Kentang: Perkedel Tepung
+
+Tepung + Air + Kedelai: X
+
+Tepung + Air + Susu: Adonan Kue Basah
+
+Tepung + Air + Sayur: Adonan Bakwan
+
+Tepung + Air + Kentang: Adonan Stick Kentang
+
+Tepung + Kedelai + Susu: X
+
+Tepung + Kedelai + Sayur: Tempe Bakwan Sayur
+
+Tepung + Kedelai + Kentang: X
+
+Tepung + Susu + Sayur: X
+
+Tepung + Susu + Kentang: Kroket Kentang
+
+Tepung + Sayur + Kentang: Bakwan Kentang Sayur
+
+Campuran Berbasis Telur
+Telur + Air + Kedelai: Telur Rebus Tempe
+
+Telur + Air + Susu: Custard / Pudding Telur
+
+Telur + Air + Sayur: Sup Telur Sayur
+
+Telur + Air + Kentang: Sup Telur Kentang
+
+Telur + Kedelai + Susu: X
+
+Telur + Kedelai + Sayur: Tumis Tempe Telur Sayur
+
+Telur + Kedelai + Kentang: Perkedel Tempe Kentang
+
+Telur + Susu + Sayur: Omelet Sayur Susu
+
+Telur + Susu + Kentang: Omelet Kentang Susu
+
+Telur + Sayur + Kentang: Perkedel Sayur Kentang
+
+Campuran Berbasis Air
+Air + Kedelai + Susu: X
+
+Air + Kedelai + Sayur: Sup Tempe Sayur
+
+Air + Kedelai + Kentang: Sup Tempe Kentang
+
+Air + Susu + Sayur: X
+
+Air + Susu + Kentang: Sup Kentang Susu
+
+Air + Sayur + Kentang: Sup Kentang Bening
+
+Kombinasi Bahan Sisa (Toko)
+Kedelai + Susu + Sayur: X
+
+Kedelai + Susu + Kentang: X
+
+Kedelai + Sayur + Kentang: Tumis Tempe Kentang Sayur
+
+Susu + Sayur + Kentang: X
