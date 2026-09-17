@@ -215,38 +215,6 @@
     #mainArea{ flex-direction:column; }
     #cookPanel{ width:100%; border-right:none; border-bottom:1px solid rgba(0,0,0,0.06); }
   }
-
-  /* ---------------- TUTORIAL ---------------- */
-  #tutOverlay{
-    position:fixed; inset:0; z-index:500; display:none; pointer-events:none;
-  }
-  #tutOverlay.open{ display:block; }
-  #tutDim{
-    position:fixed; inset:0; background:rgba(15,15,20,0.55); pointer-events:auto;
-    transition:clip-path .35s ease;
-  }
-  #tutSpot{
-    position:fixed; z-index:501; border-radius:16px; pointer-events:none;
-    box-shadow:0 0 0 4px var(--gold), 0 0 0 9999px rgba(15,15,20,0.55);
-    transition:top .35s ease, left .35s ease, width .35s ease, height .35s ease;
-  }
-  #tutCard{
-    position:fixed; z-index:502; background:#fff; border-radius:16px; padding:16px 18px;
-    width:300px; max-width:88vw; box-shadow:0 16px 40px rgba(0,0,0,0.3); pointer-events:auto;
-    transition:top .35s ease, left .35s ease;
-  }
-  #tutCard .tut-step{ font-size:10.5px; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:0.6px; margin-bottom:4px; }
-  #tutCard .tut-title{ font-size:14.5px; font-weight:800; margin-bottom:6px; }
-  #tutCard .tut-desc{ font-size:12.5px; color:#555; line-height:1.5; margin-bottom:14px; }
-  #tutCard .tut-actions{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
-  #tutCard .tut-dots{ display:flex; gap:5px; }
-  #tutCard .tut-dot{ width:6px; height:6px; border-radius:50%; background:#e3e3e8; }
-  #tutCard .tut-dot.active{ background:var(--gold); width:16px; border-radius:4px; }
-  #tutCard .tut-btns{ display:flex; gap:8px; }
-  #tutSkip{ background:none; border:none; color:var(--muted); font-size:11.5px; font-weight:700; cursor:pointer; padding:4px 0; }
-  @media (max-width:760px){
-    #tutCard{ width:270px; }
-  }
 </style>
 </head>
 <body>
@@ -273,7 +241,6 @@
           <span class="num" id="moneyCount">$0</span>
         </div>
         <div id="navControls">
-          <button class="btn" id="btnTutorial" title="Cara bermain">ℹ️ Tutorial</button>
           <button class="btn" id="btnShop">🛒 Toko</button>
           <button class="btn danger" id="btnReset">Reset</button>
         </div>
@@ -341,24 +308,6 @@
   </div>
 
   <div id="toastContainer"></div>
-
-  <!-- TUTORIAL OVERLAY -->
-  <div id="tutOverlay">
-    <div id="tutDim"></div>
-    <div id="tutSpot"></div>
-    <div id="tutCard">
-      <div class="tut-step" id="tutStepLbl">Langkah 1/9</div>
-      <div class="tut-title" id="tutTitle"></div>
-      <div class="tut-desc" id="tutDesc"></div>
-      <div class="tut-actions">
-        <div class="tut-dots" id="tutDots"></div>
-        <div class="tut-btns">
-          <button class="btn" id="tutSkip">Lewati</button>
-          <button class="btn" id="tutNext" style="background:var(--ink); color:#fff;">Lanjut</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 <script>
 (function(){
@@ -986,188 +935,10 @@
   window.addEventListener("beforeunload", saveGame);
   setInterval(saveGame, 4000);
 
-  /* ============ TUTORIAL ============ */
-  const TUT_KEY = "kokikuTutSeen_v1";
-  const tutOverlay = el("tutOverlay");
-  const tutDim = el("tutDim");
-  const tutSpot = el("tutSpot");
-  const tutCard = el("tutCard");
-  const tutTitle = el("tutTitle");
-  const tutDesc = el("tutDesc");
-  const tutStepLbl = el("tutStepLbl");
-  const tutDots = el("tutDots");
-  const tutNext = el("tutNext");
-  const tutSkip = el("tutSkip");
-
-  let tutIndex = 0;
-  let tutActive = false;
-
-  // Setiap step: target = id elemen yang di-highlight (atau null untuk tampil di tengah tanpa spotlight),
-  // onEnter = dijalankan saat step tampil (mis. buka modal), onExit = dijalankan saat pindah/keluar step.
-  const TUT_STEPS = [
-    {
-      title: "Selamat Datang di Kokiku! 🍳",
-      desc: "Yuk kenalan singkat dengan cara bermain. Tutorial ini punya beberapa langkah singkat, bisa dilewati kapan saja.",
-      target: null
-    },
-    {
-      title: "Langkah 1 — Pilih Bahan Dasar",
-      desc: "Ini hotbar bahan. Klik salah satu bahan (misalnya 🍙 Nasi) untuk memilihnya sebagai bahan masakan.",
-      target: "hotbar"
-    },
-    {
-      title: "Langkah 2 — Bahan Masuk Slot",
-      desc: "Bahan yang kamu pilih akan muncul di sini, di Tungku Masak. Kamu bisa memilih hingga 6 bahan sekaligus untuk dikombinasikan.",
-      target: "cookGrid"
-    },
-    {
-      title: "Langkah 3 — Klik Masak!",
-      desc: "Kalau kombinasi bahan sudah dikenali, tombol 'Masak!' akan aktif. Klik untuk mulai memasak hidangan.",
-      target: "cookBtnWrap"
-    },
-    {
-      title: "Istirahat Sejenak ⏳",
-      desc: "Setelah menekan Masak, akan ada jeda waktu memasak (progress bar berjalan) sebelum hidangan selesai. Sabar ya, sambil menunggu!",
-      target: "cookBtnWrap"
-    },
-    {
-      title: "Langkah 4 — Hidangan Tersaji",
-      desc: "Setelah matang, hidanganmu akan otomatis tersaji di Meja Saji dan mulai menghasilkan uang setiap detik!",
-      target: "servePanel"
-    },
-    {
-      title: "Langkah 5 — Menu Toko",
-      desc: "Butuh bahan lebih banyak? Buka Toko untuk membeli bahan baru dengan uang yang kamu kumpulkan.",
-      target: "btnShop",
-      onEnter: () => { renderShop(); shopOverlay.classList.add("open"); },
-    },
-    {
-      title: "Langkah 6 — Beli 1 Telur",
-      desc: "Coba beli 1 🥚 Telur di daftar toko ini dengan menekan tombol 'Beli'. Setelah itu kamu bisa memasak resep berbahan telur!",
-      target: "shopList",
-      onExit: () => { shopOverlay.classList.remove("open"); }
-    },
-    {
-      title: "Langkah 7 — Level & XP",
-      desc: "Setiap hidangan yang terjual memberimu XP. Naik level akan membuka bahan-bahan baru secara otomatis.",
-      target: "levelBox"
-    },
-    {
-      title: "Langkah 8 — Ensiklopedia Resep",
-      desc: "Tombol 📖 ini membuka Ensiklopedia untuk melihat semua resep yang pernah kamu temukan (dan yang masih misteri).",
-      target: "dexToggle",
-      onEnter: () => { dexPanel.classList.add("open"); },
-      onExit: () => { dexPanel.classList.remove("open"); }
-    },
-    {
-      title: "Selesai! Silakan Bermain 🎉",
-      desc: "Sekarang kamu sudah tahu dasar-dasarnya. Mulai racik bahan, masak, dan kembangkan resto kecilmu. Selamat bermain!",
-      target: null
-    }
-  ];
-
-  function positionSpotlight(targetId){
-    if (!targetId){
-      tutSpot.style.opacity = "0";
-      tutDim.style.display = "block";
-      // center card
-      tutCard.style.top = "50%";
-      tutCard.style.left = "50%";
-      tutCard.style.transform = "translate(-50%,-50%)";
-      return;
-    }
-    const targetEl = el(targetId);
-    if (!targetEl){ positionSpotlight(null); return; }
-    const r = targetEl.getBoundingClientRect();
-    const pad = 8;
-    tutSpot.style.opacity = "1";
-    tutDim.style.display = "none";
-    tutSpot.style.top = (r.top - pad) + "px";
-    tutSpot.style.left = (r.left - pad) + "px";
-    tutSpot.style.width = (r.width + pad*2) + "px";
-    tutSpot.style.height = (r.height + pad*2) + "px";
-
-    // Posisikan kartu di bawah target, atau di atas jika tidak cukup ruang
-    let cardTop = r.bottom + pad + 14;
-    const cardHeight = 190;
-    if (cardTop + cardHeight > window.innerHeight){
-      cardTop = Math.max(10, r.top - cardHeight - 14);
-    }
-    let cardLeft = r.left;
-    const cardWidth = tutCard.offsetWidth || 300;
-    if (cardLeft + cardWidth > window.innerWidth - 10){
-      cardLeft = window.innerWidth - cardWidth - 10;
-    }
-    if (cardLeft < 10) cardLeft = 10;
-    tutCard.style.transform = "none";
-    tutCard.style.top = cardTop + "px";
-    tutCard.style.left = cardLeft + "px";
-  }
-
-  function renderTutStep(){
-    const step = TUT_STEPS[tutIndex];
-    tutStepLbl.textContent = `Langkah ${tutIndex+1}/${TUT_STEPS.length}`;
-    tutTitle.textContent = step.title;
-    tutDesc.textContent = step.desc;
-    tutNext.textContent = (tutIndex === TUT_STEPS.length-1) ? "Selesai" : "Lanjut";
-
-    tutDots.innerHTML = "";
-    TUT_STEPS.forEach((_, i) => {
-      const d = document.createElement("div");
-      d.className = "tut-dot" + (i === tutIndex ? " active" : "");
-      tutDots.appendChild(d);
-    });
-
-    if (step.onEnter) step.onEnter();
-    // beri jeda kecil supaya modal/overlay yang dibuka onEnter sempat render sebelum diukur posisinya
-    requestAnimationFrame(() => positionSpotlight(step.target));
-  }
-
-  function startTutorial(){
-    tutIndex = 0;
-    tutActive = true;
-    tutOverlay.classList.add("open");
-    renderTutStep();
-  }
-
-  function endTutorial(){
-    const step = TUT_STEPS[tutIndex];
-    if (step && step.onExit) step.onExit();
-    tutActive = false;
-    tutOverlay.classList.remove("open");
-    try{ localStorage.setItem(TUT_KEY, "1"); }catch(e){}
-  }
-
-  tutNext.addEventListener("click", () => {
-    const step = TUT_STEPS[tutIndex];
-    if (step && step.onExit) step.onExit();
-    if (tutIndex >= TUT_STEPS.length - 1){
-      endTutorial();
-      return;
-    }
-    tutIndex++;
-    renderTutStep();
-  });
-
-  tutSkip.addEventListener("click", endTutorial);
-
-  window.addEventListener("resize", () => {
-    if (tutActive) positionSpotlight(TUT_STEPS[tutIndex].target);
-  });
-
-  el("btnTutorial").addEventListener("click", startTutorial);
-
   /* ============ INIT ============ */
   renderCookSlots();
   updateRecipePreview();
   loadGame();
-
-  // Tampilkan tutorial otomatis untuk pemain baru
-  try{
-    if (!localStorage.getItem(TUT_KEY)){
-      setTimeout(startTutorial, 400);
-    }
-  }catch(e){}
 
   function fitLayout(){
     const wrap = document.getElementById("navWrap");
